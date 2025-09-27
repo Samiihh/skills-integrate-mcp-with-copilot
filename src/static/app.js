@@ -4,6 +4,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const signupForm = document.getElementById("signup-form");
   const messageDiv = document.getElementById("message");
 
+  // Ideas elements
+  const ideasList = document.getElementById("ideas-list");
+  const ideaForm = document.getElementById("idea-form");
+  const ideaMessageDiv = document.getElementById("idea-message");
+
   // Function to fetch activities from API
   async function fetchActivities() {
     try {
@@ -155,6 +160,92 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // Ideas logic
+  async function fetchIdeas() {
+    try {
+      const response = await fetch("/ideas");
+      const ideas = await response.json();
+      ideasList.innerHTML = "";
+      if (ideas.length === 0) {
+        ideasList.innerHTML = "<p><em>No ideas saved yet.</em></p>";
+        return;
+      }
+      ideas.forEach((idea) => {
+        const ideaCard = document.createElement("div");
+        ideaCard.className = "activity-card";
+        ideaCard.innerHTML = `
+          <h4>${idea.title}</h4>
+          <p>${idea.description}</p>
+          <button class="delete-btn" data-title="${idea.title}">Delete</button>
+        `;
+        ideasList.appendChild(ideaCard);
+      });
+      // Add event listeners to delete buttons
+      document.querySelectorAll("#ideas-list .delete-btn").forEach((btn) => {
+        btn.addEventListener("click", handleDeleteIdea);
+      });
+    } catch (error) {
+      ideasList.innerHTML = "<p>Failed to load ideas.</p>";
+      console.error("Error fetching ideas:", error);
+    }
+  }
+
+  async function handleDeleteIdea(event) {
+    const title = event.target.getAttribute("data-title");
+    try {
+      const response = await fetch(`/ideas?title=${encodeURIComponent(title)}`, {
+        method: "DELETE",
+      });
+      const result = await response.json();
+      if (response.ok) {
+        ideaMessageDiv.textContent = result.message;
+        ideaMessageDiv.className = "success";
+        fetchIdeas();
+      } else {
+        ideaMessageDiv.textContent = result.detail || "Error deleting idea.";
+        ideaMessageDiv.className = "error";
+      }
+      ideaMessageDiv.classList.remove("hidden");
+      setTimeout(() => {
+        ideaMessageDiv.classList.add("hidden");
+      }, 4000);
+    } catch (error) {
+      ideaMessageDiv.textContent = "Failed to delete idea.";
+      ideaMessageDiv.className = "error";
+      ideaMessageDiv.classList.remove("hidden");
+    }
+  }
+
+  ideaForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const title = document.getElementById("idea-title").value;
+    const description = document.getElementById("idea-desc").value;
+    try {
+      const response = await fetch(`/ideas?title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}`, {
+        method: "POST",
+      });
+      const result = await response.json();
+      if (response.ok) {
+        ideaMessageDiv.textContent = result.message;
+        ideaMessageDiv.className = "success";
+        ideaForm.reset();
+        fetchIdeas();
+      } else {
+        ideaMessageDiv.textContent = result.detail || "Error saving idea.";
+        ideaMessageDiv.className = "error";
+      }
+      ideaMessageDiv.classList.remove("hidden");
+      setTimeout(() => {
+        ideaMessageDiv.classList.add("hidden");
+      }, 4000);
+    } catch (error) {
+      ideaMessageDiv.textContent = "Failed to save idea.";
+      ideaMessageDiv.className = "error";
+      ideaMessageDiv.classList.remove("hidden");
+    }
+  });
+
   // Initialize app
   fetchActivities();
+  fetchIdeas();
 });

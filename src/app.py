@@ -19,6 +19,8 @@ current_dir = Path(__file__).parent
 app.mount("/static", StaticFiles(directory=os.path.join(Path(__file__).parent,
           "static")), name="static")
 
+from typing import List
+
 # In-memory activity database
 activities = {
     "Chess Club": {
@@ -75,12 +77,43 @@ activities = {
         "max_participants": 12,
         "participants": ["charlotte@mergington.edu", "henry@mergington.edu"]
     }
+
 }
+
+# In-memory ideas database
+ideas: List[dict] = []
 
 
 @app.get("/")
 def root():
     return RedirectResponse(url="/static/index.html")
+
+
+# Ideas endpoints
+@app.get("/ideas")
+def get_ideas():
+    """Return all saved ideas"""
+    return ideas
+
+
+@app.post("/ideas")
+def save_idea(title: str, description: str):
+    """Save a new idea"""
+    idea = {"title": title, "description": description}
+    ideas.append(idea)
+    return {"message": "Idea saved", "idea": idea}
+
+
+@app.delete("/ideas")
+def delete_idea(title: str):
+    """Delete an idea by title"""
+    global ideas
+    before = len(ideas)
+    ideas = [i for i in ideas if i["title"] != title]
+    after = len(ideas)
+    if before == after:
+        raise HTTPException(status_code=404, detail="Idea not found")
+    return {"message": f"Deleted idea '{title}'"}
 
 
 @app.get("/activities")

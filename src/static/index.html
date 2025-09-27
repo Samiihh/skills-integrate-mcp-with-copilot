@@ -39,6 +39,25 @@
         </form>
         <div id="message" class="hidden"></div>
       </section>
+
+      <section id="ideas-container">
+        <h3>Save Your Ideas</h3>
+        <form id="idea-form">
+          <div class="form-group">
+            <label for="idea-title">Title:</label>
+            <input type="text" id="idea-title" required placeholder="Idea title" />
+          </div>
+          <div class="form-group">
+            <label for="idea-desc">Description:</label>
+            <input type="text" id="idea-desc" required placeholder="Describe your idea" />
+          </div>
+          <button type="submit">Save Idea</button>
+        </form>
+        <div id="ideas-list">
+          <!-- Ideas will be loaded here -->
+        </div>
+        <div id="idea-message" class="hidden"></div>
+      </section>
     </main>
 
     <footer>
